@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:encrypter/utilities/sharedPreferencesKeys.dart';
 
 enum _inputError {
   EMPTY,
@@ -8,7 +13,12 @@ enum _inputError {
 }
 
 class AddKeyActionSheet extends StatefulWidget {
-  const AddKeyActionSheet({Key? key}) : super(key: key);
+  const AddKeyActionSheet(
+      {Key? key, required this.listKeys, required this.parentSetter})
+      : super(key: key);
+
+  final List<String> listKeys;
+  final Function parentSetter;
 
   @override
   _AddKeyActionSheetState createState() => _AddKeyActionSheetState();
@@ -19,7 +29,7 @@ class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
 
   final textFieldControler = TextEditingController();
 
-  void _onAddKey(String key) {
+  void _onAddKey(String key, List<String> keysArray) {
     if (key.isEmpty) {
       textFieldError = _inputError.EMPTY;
     } else if (key.length != key.runes.length) {
@@ -31,7 +41,14 @@ class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
     }
 
     textFieldError == _inputError.NONE
-        ? Navigator.pop(context)
+        ? () {
+            keysArray.add(key);
+            widget.parentSetter.call();
+            SharedPreferences.getInstance().then((prefs) {
+              prefs.setString(keysArrayPrefsKey, json.encode(keysArray));
+            });
+            Navigator.pop(context);
+          }.call()
         : this.setState(() {});
   }
 
@@ -49,7 +66,8 @@ class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
             ),
             Padding(
               padding: const EdgeInsets.only(
-                bottom: 6,
+                bottom: 30,
+                top: 30,
               ),
               child: TextField(
                 controller: textFieldControler,
@@ -60,7 +78,8 @@ class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
                       case _inputError.EMPTY:
                         return "Key cannot be empty";
                       case _inputError.BAD_LENGHT:
-                        return "Key should be 16 characters";
+                        int l = textFieldControler.text.length;
+                        return "Key should be 16 characters(you have $l)";
                       case _inputError.NOT_BASIC_CHARACTERS:
                         return "Nice key, but it should be only text";
                       default:
@@ -69,21 +88,31 @@ class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
                   }.call(),
                 ),
                 onEditingComplete: () {
-                  _onAddKey(textFieldControler.text);
+                  _onAddKey(textFieldControler.text, widget.listKeys);
                 },
               ),
             ),
             MaterialButton(
               child: Text("Add key"),
               color: Theme.of(context).accentColor,
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.all(15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(15)),
+              ),
+              minWidth: double.infinity,
               onPressed: () {
-                _onAddKey(textFieldControler.text);
+                _onAddKey(textFieldControler.text, widget.listKeys);
               },
             )
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    textFieldControler.dispose();
+    super.dispose();
   }
 }

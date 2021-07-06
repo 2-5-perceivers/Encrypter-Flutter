@@ -1,9 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 
 import 'package:encrypter/widgets/drawer.dart';
 import 'package:encrypter/widgets/appBar.dart';
 import 'package:encrypter/widgets/addKeyActionSheet.dart';
+import 'package:encrypter/utilities/sharedPreferencesKeys.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -13,11 +18,12 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   late IconData
       themeIconController; //variable used to keep the actual icon for the theme changer
 
   List<String> keys = [];
-  late String selectedKey;
+  String selectedKey = '';
 
   final inpTextController = TextEditingController();
   final outTextController = TextEditingController();
@@ -48,9 +54,14 @@ class _HomeState extends State<Home> {
           fontWeight: FontWeight.w500,
         )));
 
-    selectedKey = keys.length > 0
-        ? keys.first
-        : ''; //Sets the  selected value to the first key available or to an empty character
+    _prefs.then((prefs) {
+      keys = List<String>.from(
+          json.decode(prefs.getString(keysArrayPrefsKey) ?? '[]'));
+      selectedKey = keys.length > 0
+          ? keys.first
+          : ''; //Sets the  selected value to the first key available or to an empty character
+      setState(() {});
+    });
 
     return ThemeSwitchingArea(
       child: Scaffold(
@@ -92,6 +103,9 @@ class _HomeState extends State<Home> {
               Theme(
                 data: Theme.of(context).copyWith(
                   canvasColor: Theme.of(context).accentColor,
+                  buttonTheme: Theme.of(context).buttonTheme.copyWith(
+                        alignedDropdown: true,
+                      ),
                 ),
                 child: DropdownButton<String>(
                   value: selectedKey == ''
@@ -114,6 +128,7 @@ class _HomeState extends State<Home> {
                             onTap: () {
                               Navigator.pop(context); //This closes the dropdown
                               showModalBottomSheet(
+                                isScrollControlled: true,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(15.0),
@@ -122,7 +137,14 @@ class _HomeState extends State<Home> {
                                 ),
                                 context: context,
                                 builder: (context) {
-                                  return AddKeyActionSheet();
+                                  return AddKeyActionSheet(
+                                    listKeys: keys,
+                                    parentSetter: () {
+                                      setState(() {
+                                        selectedKey = keys.last;
+                                      });
+                                    },
+                                  );
                                 },
                               );
                             },
