@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:encrypter/utilities/sharedPreferencesKeys.dart';
 
+/// Enum type for error types in key input text field
 enum _inputError {
   EMPTY,
   BAD_LENGHT,
@@ -14,10 +15,11 @@ enum _inputError {
 
 class AddKeyActionSheet extends StatefulWidget {
   const AddKeyActionSheet(
-      {Key? key, required this.listKeys, required this.parentSetter})
-      : super(key: key);
+      {Key? key, required List<String> list, required this.parentSetter})
+      : _listKeys = list,
+        super(key: key);
 
-  final List<String> listKeys;
+  final List<String> _listKeys;
   final Function parentSetter;
 
   @override
@@ -43,9 +45,12 @@ class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
     textFieldError == _inputError.NONE
         ? () {
             keysArray.add(key);
-            widget.parentSetter.call();
             SharedPreferences.getInstance().then((prefs) {
-              prefs.setString(keysArrayPrefsKey, json.encode(keysArray));
+              prefs.setString(keysArrayPrefsKey, json.encode(keysArray)).then(
+                (s) {
+                  widget.parentSetter();
+                },
+              );
             });
             Navigator.pop(context);
           }.call()
@@ -88,7 +93,7 @@ class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
                   }.call(),
                 ),
                 onEditingComplete: () {
-                  _onAddKey(textFieldControler.text, widget.listKeys);
+                  _onAddKey(textFieldControler.text, widget._listKeys);
                 },
               ),
             ),
@@ -101,7 +106,7 @@ class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
               ),
               minWidth: double.infinity,
               onPressed: () {
-                _onAddKey(textFieldControler.text, widget.listKeys);
+                _onAddKey(textFieldControler.text, widget._listKeys);
               },
             )
           ],

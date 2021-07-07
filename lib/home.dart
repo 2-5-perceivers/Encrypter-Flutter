@@ -18,12 +18,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  Future<SharedPreferences> _prefsFuture = SharedPreferences.getInstance();
   late IconData
       themeIconController; //variable used to keep the actual icon for the theme changer
 
-  List<String> keys = [];
-  String selectedKey = '';
+  ///This is where the saved encryption keys are loaded
+  List<String> keys = ["Loading keys"];
+  String selectedKey = 'Loading keys';
 
   final inpTextController = TextEditingController();
   final outTextController = TextEditingController();
@@ -31,15 +32,28 @@ class _HomeState extends State<Home> {
   bool textInputError = false;
   bool keySelectError = false;
 
-  bool validText(String text) {
-    //Returns true if is valid
-    return text.isNotEmpty;
-  }
-
+  /// Style used by the action buttons on this page
   late ButtonStyle buttonStyle;
 
   @override
+  void initState() {
+    super.initState();
+    // When shared preferences are load it decodes the saved JSON
+    _prefsFuture.then((prefs) {
+      keys = List<String>.from(
+        json.decode(
+          prefs.getString(keysArrayPrefsKey) ?? '[]',
+        ),
+      );
+      //Sets the  selected value to the first key available or to an empty character
+      selectedKey = keys.isNotEmpty ? keys.first : '';
+      setState(() {});
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Sets the icon controller depending on current brightness
     themeIconController =
         ThemeProvider.of(context)!.brightness == Brightness.light
             ? Icons.brightness_4
@@ -54,15 +68,6 @@ class _HomeState extends State<Home> {
           fontWeight: FontWeight.w500,
         )));
 
-    _prefs.then((prefs) {
-      keys = List<String>.from(
-          json.decode(prefs.getString(keysArrayPrefsKey) ?? '[]'));
-      selectedKey = keys.length > 0
-          ? keys.first
-          : ''; //Sets the  selected value to the first key available or to an empty character
-      setState(() {});
-    });
-
     return ThemeSwitchingArea(
       child: Scaffold(
         resizeToAvoidBottomInset:
@@ -75,6 +80,7 @@ class _HomeState extends State<Home> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
+                // Input text
                 flex: 4,
                 child: TextField(
                   expands: true,
@@ -94,6 +100,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
               Padding(
+                // Label for drop down button
                 padding: const EdgeInsets.all(6),
                 child: Text(
                   "Key",
@@ -101,6 +108,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
               Theme(
+                // Drop down for encryption key selection
                 data: Theme.of(context).copyWith(
                   canvasColor: Theme.of(context).accentColor,
                   buttonTheme: Theme.of(context).buttonTheme.copyWith(
@@ -108,15 +116,29 @@ class _HomeState extends State<Home> {
                       ),
                 ),
                 child: DropdownButton<String>(
-                  value: selectedKey == ''
-                      ? null
-                      : selectedKey, //Defaults to nothing if there are no keys
+                  value: selectedKey != ''
+                      ? selectedKey //Defaults to nothing if there are no keys
+                      : null,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedKey = newValue!;
+                      keySelectError = selectedKey == '';
+                    });
+                  },
                   items: keys.map((String value) {
                         return DropdownMenuItem(
-                          child: ListTile(
-                            title: Text(value),
-                          ),
                           value: value,
+                          child: GestureDetector(
+                            onSecondaryTap: () {
+                              onOpenRemoveSheet(value);
+                            },
+                            onLongPress: () {
+                              onOpenRemoveSheet(value);
+                            },
+                            child: ListTile(
+                              title: Text(value),
+                            ),
+                          ),
                         );
                       }).toList() +
                       [
@@ -138,12 +160,8 @@ class _HomeState extends State<Home> {
                                 context: context,
                                 builder: (context) {
                                   return AddKeyActionSheet(
-                                    listKeys: keys,
-                                    parentSetter: () {
-                                      setState(() {
-                                        selectedKey = keys.last;
-                                      });
-                                    },
+                                    list: keys,
+                                    parentSetter: newKeySetState,
                                   );
                                 },
                               );
@@ -167,15 +185,10 @@ class _HomeState extends State<Home> {
                     fontSize: 16.0,
                   ),
                   itemHeight: 70,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedKey = newValue!;
-                      keySelectError = selectedKey == '';
-                    });
-                  },
                 ),
               ),
               Expanded(
+                // Output text
                 flex: 4,
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 6.0),
@@ -194,6 +207,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
               Expanded(
+                // Buttons
                 flex: 2,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -259,6 +273,78 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
+  }
+
+  /// Returns true if is valid
+  bool validText(String text) {
+    return text.isNotEmpty;
+  }
+
+  void onOpenRemoveSheet(
+    String value,
+  ) {
+    // This closes the dropDown if it's open
+    if (Navigator.canPop(context)) Navigator.pop(context);
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                onTap: () async {
+                  Navigator.pop(context);
+                  keys.remove(value);
+                  await SharedPreferences.getInstance().then((prefs) {
+                    prefs.setString(keysArrayPrefsKey, json.encode(keys)).then(
+                      (s) {
+                        newKeySetState();
+                      },
+                    );
+                  });
+                },
+                tileColor: Theme.of(context).accentColor,
+                title: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                  ),
+                  child: Text(
+                    "Delete key",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headline5,
+                  ),
+                ),
+              ),
+              ListTile(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                tileColor: Theme.of(context).errorColor,
+                title: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                  ),
+                  child: Text(
+                    "Cancel",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headline5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// To be passed to to widgets that change te array
+  void newKeySetState() {
+    setState(() {
+      selectedKey = keys.isEmpty ? '' : keys.last;
+    });
   }
 
   @override
