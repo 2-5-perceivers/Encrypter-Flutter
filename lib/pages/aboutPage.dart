@@ -25,8 +25,8 @@ class _AboutPageState extends State<AboutPage> {
             : Icons.brightness_7;
     return ThemeSwitchingArea(
       child: Scaffold(
-        appBar: MainAppBar(context, themeIconController, "About"),
-        drawer: MainDrawer(),
+        appBar: MainAppBar(context, themeIconController, "About",
+            addBackButtonToHome: true),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             await launch(_url);

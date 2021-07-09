@@ -35,6 +35,7 @@ class MainDrawer extends StatelessWidget {
             title: Text('Encrypt files'),
             onTap: () {},
           ),
+          Divider(),
           ListTile(
             title: Text('About'),
             onTap: () {
