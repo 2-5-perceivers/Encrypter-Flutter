@@ -28,6 +28,7 @@ PreferredSizeWidget? MainAppBar(context, themeIconController, String title,
         ThemeSwitcher(
           builder: (context) {
             return IconButton(
+              tooltip: "Change theme",
               onPressed: () {
                 ThemeSwitcher.of(context)!.changeTheme(
                   theme:

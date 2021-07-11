@@ -287,49 +287,69 @@ class _HomeState extends State<Home> {
     if (Navigator.canPop(context)) Navigator.pop(context);
     showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(15.0),
+          topRight: Radius.circular(15.0),
+        ),
+      ),
       builder: (context) {
         return SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                onTap: () async {
-                  Navigator.pop(context);
-                  keys.remove(value);
-                  await SharedPreferences.getInstance().then((prefs) {
-                    prefs.setString(keysArrayPrefsKey, json.encode(keys)).then(
-                      (s) {
-                        newKeySetState();
-                      },
-                    );
-                  });
-                },
-                tileColor: Theme.of(context).accentColor,
-                title: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 20,
-                  ),
-                  child: Text(
-                    "Delete key",
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headline5,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.all(Radius.circular(15)),
+                  child: ListTile(
+                    onTap: () async {
+                      Navigator.pop(context);
+                      keys.remove(value);
+                      await SharedPreferences.getInstance().then((prefs) {
+                        prefs
+                            .setString(keysArrayPrefsKey, json.encode(keys))
+                            .then(
+                          (s) {
+                            newKeySetState();
+                          },
+                        );
+                      });
+                    },
+                    tileColor: Theme.of(context).accentColor,
+                    title: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 20,
+                      ),
+                      child: Text(
+                        "Delete key",
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headline5,
+                      ),
+                    ),
                   ),
                 ),
               ),
-              ListTile(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                tileColor: Theme.of(context).errorColor,
-                title: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 20,
-                  ),
-                  child: Text(
-                    "Cancel",
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headline5,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.all(Radius.circular(15)),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    tileColor: Theme.of(context).errorColor,
+                    title: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 20,
+                      ),
+                      child: Text(
+                        "Cancel",
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headline5,
+                      ),
+                    ),
                   ),
                 ),
               ),
