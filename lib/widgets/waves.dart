@@ -23,9 +23,9 @@ class EncrypterWaves extends StatelessWidget {
               ],
         durations: [35000, 19440, 10800],
         heightPercentages: [0.25, 0.30, 0.35],
-        blur: MaskFilter.blur(BlurStyle.solid, 4),
+        blur: const MaskFilter.blur(BlurStyle.solid, 4),
       ),
-      size: Size(
+      size: const Size(
         double.infinity,
         double.infinity,
       ),

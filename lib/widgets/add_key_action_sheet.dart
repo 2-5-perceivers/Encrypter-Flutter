@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:encrypter/utilities/sharedPreferencesKeys.dart';
+import 'package:encrypter/utilities/shared_preferences_keys.dart';
 
 /// Enum type for error types in key input text field
 enum _inputError {
-  EMPTY,
-  BAD_LENGHT,
-  NOT_BASIC_CHARACTERS,
-  NONE,
+  empty,
+  badLenght,
+  notBasicCharacters,
+  none,
 }
 
 class AddKeyActionSheet extends StatefulWidget {
@@ -27,22 +27,22 @@ class AddKeyActionSheet extends StatefulWidget {
 }
 
 class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
-  _inputError textFieldError = _inputError.NONE;
+  _inputError textFieldError = _inputError.none;
 
   final textFieldControler = TextEditingController();
 
   void _onAddKey(String key, List<String> keysArray) {
     if (key.isEmpty) {
-      textFieldError = _inputError.EMPTY;
+      textFieldError = _inputError.empty;
     } else if (key.length != key.runes.length) {
-      textFieldError = _inputError.NOT_BASIC_CHARACTERS;
+      textFieldError = _inputError.notBasicCharacters;
     } else if (key.length != 16) {
-      textFieldError = _inputError.BAD_LENGHT;
+      textFieldError = _inputError.badLenght;
     } else {
-      textFieldError = _inputError.NONE;
+      textFieldError = _inputError.none;
     }
 
-    textFieldError == _inputError.NONE
+    textFieldError == _inputError.none
         ? () {
             keysArray.add(key);
             SharedPreferences.getInstance().then((prefs) {
@@ -54,7 +54,7 @@ class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
             });
             Navigator.pop(context);
           }.call()
-        : this.setState(() {});
+        : setState(() {});
   }
 
   @override
@@ -80,12 +80,12 @@ class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
                   labelText: "The key",
                   errorText: () {
                     switch (textFieldError) {
-                      case _inputError.EMPTY:
+                      case _inputError.empty:
                         return "Key cannot be empty";
-                      case _inputError.BAD_LENGHT:
+                      case _inputError.badLenght:
                         int l = textFieldControler.text.length;
                         return "Key should be 16 characters(you have $l)";
-                      case _inputError.NOT_BASIC_CHARACTERS:
+                      case _inputError.notBasicCharacters:
                         return "Nice key, but it should be only text";
                       default:
                         return null;
@@ -98,10 +98,10 @@ class _AddKeyActionSheetState extends State<AddKeyActionSheet> {
               ),
             ),
             MaterialButton(
-              child: Text("Add key"),
+              child: const Text("Add key"),
               color: Theme.of(context).accentColor,
-              padding: EdgeInsets.all(15),
-              shape: RoundedRectangleBorder(
+              padding: const EdgeInsets.all(15),
+              shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(15)),
               ),
               minWidth: double.infinity,

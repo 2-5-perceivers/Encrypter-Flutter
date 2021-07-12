@@ -13,9 +13,11 @@ class MainDrawer extends StatelessWidget {
         children: [
           DrawerHeader(
             child: Stack(children: [
-              ClipRect(child: EncrypterWaves()),
+              const ClipRect(
+                child: EncrypterWaves(),
+              ),
               Container(
-                alignment: AlignmentDirectional(-0.8, 0.8),
+                alignment: const AlignmentDirectional(-0.8, 0.8),
                 child: Text(
                   "Encrypter",
                   style: Theme.of(context).textTheme.headline4,
@@ -25,19 +27,19 @@ class MainDrawer extends StatelessWidget {
             padding: EdgeInsets.zero,
           ),
           ListTile(
-            title: Text('Encrypt text'),
+            title: const Text('Encrypt text'),
             onTap: () {
               Navigator.pop(context);
               Navigator.pushReplacementNamed(context, "/home");
             },
           ),
           ListTile(
-            title: Text('Encrypt files'),
+            title: const Text('Encrypt files'),
             onTap: () {},
           ),
-          Divider(),
+          const Divider(),
           ListTile(
-            title: Text('About'),
+            title: const Text('About'),
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, "/about");

@@ -4,10 +4,10 @@ import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 
 import 'package:encrypter/utilities/themes.dart';
 
-import 'package:encrypter/pages/aboutPage.dart';
+import 'package:encrypter/pages/about_page.dart';
 import 'package:encrypter/home.dart';
 
-void main() => runApp(Encrypter());
+void main() => runApp(const Encrypter());
 
 class Encrypter extends StatelessWidget {
   const Encrypter({Key? key}) : super(key: key);
@@ -19,7 +19,9 @@ class Encrypter extends StatelessWidget {
 
     final isPlatformDark =
         WidgetsBinding.instance!.window.platformBrightness == Brightness.dark;
+
     final initTheme = isPlatformDark ? darkTheme : lightTheme;
+
     return ThemeProvider(
       initTheme: initTheme,
       builder: (_, myTheme) {
@@ -29,8 +31,8 @@ class Encrypter extends StatelessWidget {
           theme: myTheme,
           initialRoute: '/home',
           routes: {
-            '/home': (context) => Home(),
-            '/about': (context) => AboutPage()
+            '/home': (context) => const Home(),
+            '/about': (context) => const AboutPage(),
           },
         );
       },

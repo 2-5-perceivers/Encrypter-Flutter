@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:encrypter/widgets/drawer.dart';
-import 'package:encrypter/widgets/appBar.dart';
+import 'package:encrypter/widgets/app_bar.dart';
 
 const _url = 'https://github.com/2-5-perceivers';
 
@@ -31,14 +30,14 @@ class _AboutPageState extends State<AboutPage> {
           onPressed: () async {
             await launch(_url);
           },
-          child: Icon(Icons.messenger_outline),
+          child: const Icon(Icons.messenger_outline),
         ),
         body: Center(
           child: Container(
-            padding: EdgeInsets.all(30),
-            margin: EdgeInsets.all(30),
+            padding: const EdgeInsets.all(30),
+            margin: const EdgeInsets.all(30),
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(15)),
+                borderRadius: const BorderRadius.all(Radius.circular(15)),
                 border: Border.all(
                     color: Theme.of(context).primaryColor, width: 3)),
             child: Column(

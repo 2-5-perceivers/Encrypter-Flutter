@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 
 import 'package:encrypter/widgets/drawer.dart';
-import 'package:encrypter/widgets/appBar.dart';
-import 'package:encrypter/widgets/keyChoserSpinner.dart';
+import 'package:encrypter/widgets/app_bar.dart';
+import 'package:encrypter/widgets/key_choser_spinner.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -13,18 +13,21 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  late IconData
-      themeIconController; //variable used to keep the actual icon for the theme changer
+  /// Variable used to keep the actual icon for the theme changer
+  late IconData themeIconController;
 
+  // Controllers
   final inpTextController = TextEditingController();
   final outTextController = TextEditingController();
 
+  /// Keeps the input format error for the main text field
   bool textInputError = false;
 
   /// Style used by the action buttons on this page
   late ButtonStyle buttonStyle;
 
-  GlobalKey<KeysSpinnerState> _dropDownKey = GlobalKey();
+  /// Key for accesing the dropdown's state
+  final GlobalKey<KeysSpinnerState> _dropDownKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -35,20 +38,25 @@ class _HomeState extends State<Home> {
             : Icons.brightness_7;
 
     buttonStyle = ButtonStyle(
-        backgroundColor: MaterialStateColor.resolveWith((states) {
+      backgroundColor: MaterialStateColor.resolveWith(
+        (s) {
           return Theme.of(context).primaryColor;
-        }),
-        textStyle: MaterialStateProperty.all(TextStyle(
+        },
+      ),
+      textStyle: MaterialStateProperty.all(
+        const TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w500,
-        )));
+        ),
+      ),
+    );
 
     return ThemeSwitchingArea(
       child: Scaffold(
         resizeToAvoidBottomInset:
             false, //This prevents the damn keyboard compressing the screen making my lovely buttons look like shit
         appBar: MainAppBar(context, themeIconController, "Encrypter"),
-        drawer: MainDrawer(),
+        drawer: const MainDrawer(),
         body: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
@@ -63,9 +71,11 @@ class _HomeState extends State<Home> {
                   maxLines: null,
                   controller: inpTextController,
                   onChanged: (value) {
-                    setState(() {
-                      textInputError = !validText(value);
-                    });
+                    setState(
+                      () {
+                        textInputError = !validText(value);
+                      },
+                    );
                   },
                   decoration: InputDecoration(
                       labelText: "Input text",
@@ -82,7 +92,7 @@ class _HomeState extends State<Home> {
                   style: Theme.of(context).textTheme.subtitle2,
                 ),
               ),
-              KeysSpinner(),
+              KeysSpinner(key: _dropDownKey),
               Expanded(
                 // Output text
                 flex: 4,
@@ -117,7 +127,8 @@ class _HomeState extends State<Home> {
                           child: Text("Copy Text".toUpperCase()),
                           style: buttonStyle.copyWith(
                             backgroundColor: MaterialStateColor.resolveWith(
-                                (states) => Theme.of(context).accentColor),
+                              (s) => Theme.of(context).accentColor,
+                            ),
                           ),
                         ),
                       ),
@@ -131,11 +142,13 @@ class _HomeState extends State<Home> {
                               padding: const EdgeInsets.all(2.0),
                               child: ElevatedButton(
                                 onPressed: () {
-                                  setState(() {
-                                    textInputError =
-                                        !validText(inpTextController.text);
-                                    _dropDownKey.currentState!.validate();
-                                  });
+                                  setState(
+                                    () {
+                                      textInputError =
+                                          !validText(inpTextController.text);
+                                      _dropDownKey.currentState!.validate();
+                                    },
+                                  );
                                 },
                                 child: Text("Encrypt".toUpperCase()),
                                 style: buttonStyle,
@@ -147,11 +160,13 @@ class _HomeState extends State<Home> {
                               padding: const EdgeInsets.all(2.0),
                               child: ElevatedButton(
                                 onPressed: () {
-                                  setState(() {
-                                    textInputError =
-                                        !validText(inpTextController.text);
-                                    _dropDownKey.currentState!.validate();
-                                  });
+                                  setState(
+                                    () {
+                                      textInputError =
+                                          !validText(inpTextController.text);
+                                      _dropDownKey.currentState!.validate();
+                                    },
+                                  );
                                 },
                                 child: Text("Decrypt".toUpperCase()),
                                 style: buttonStyle,
