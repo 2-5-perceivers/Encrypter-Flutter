@@ -1,14 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 
 import 'package:encrypter/widgets/drawer.dart';
 import 'package:encrypter/widgets/appBar.dart';
-import 'package:encrypter/widgets/addKeyActionSheet.dart';
-
-import 'package:encrypter/utilities/sharedPreferencesKeys.dart';
+import 'package:encrypter/widgets/keyChoserSpinner.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -18,38 +13,18 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  Future<SharedPreferences> _prefsFuture = SharedPreferences.getInstance();
   late IconData
       themeIconController; //variable used to keep the actual icon for the theme changer
-
-  ///This is where the saved encryption keys are loaded
-  List<String> keys = ["Loading keys"];
-  String selectedKey = 'Loading keys';
 
   final inpTextController = TextEditingController();
   final outTextController = TextEditingController();
 
   bool textInputError = false;
-  bool keySelectError = false;
 
   /// Style used by the action buttons on this page
   late ButtonStyle buttonStyle;
 
-  @override
-  void initState() {
-    super.initState();
-    // When shared preferences are load it decodes the saved JSON
-    _prefsFuture.then((prefs) {
-      keys = List<String>.from(
-        json.decode(
-          prefs.getString(keysArrayPrefsKey) ?? '[]',
-        ),
-      );
-      //Sets the  selected value to the first key available or to an empty character
-      selectedKey = keys.isNotEmpty ? keys.first : '';
-      setState(() {});
-    });
-  }
+  GlobalKey<KeysSpinnerState> _dropDownKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -107,86 +82,7 @@ class _HomeState extends State<Home> {
                   style: Theme.of(context).textTheme.subtitle2,
                 ),
               ),
-              Theme(
-                // Drop down for encryption key selection
-                data: Theme.of(context).copyWith(
-                  canvasColor: Theme.of(context).accentColor,
-                  buttonTheme: Theme.of(context).buttonTheme.copyWith(
-                        alignedDropdown: true,
-                      ),
-                ),
-                child: DropdownButton<String>(
-                  value: selectedKey != ''
-                      ? selectedKey //Defaults to nothing if there are no keys
-                      : null,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedKey = newValue!;
-                      keySelectError = selectedKey == '';
-                    });
-                  },
-                  items: keys.map((String value) {
-                        return DropdownMenuItem(
-                          value: value,
-                          child: GestureDetector(
-                            onSecondaryTap: () {
-                              onOpenRemoveSheet(value);
-                            },
-                            onLongPress: () {
-                              onOpenRemoveSheet(value);
-                            },
-                            child: ListTile(
-                              title: Text(value),
-                            ),
-                          ),
-                        );
-                      }).toList() +
-                      [
-                        DropdownMenuItem(
-                          value: null,
-                          child: ListTile(
-                            leading: Icon(Icons.add),
-                            title: Text("Add new key"),
-                            onTap: () {
-                              Navigator.pop(context); //This closes the dropdown
-                              showModalBottomSheet(
-                                isScrollControlled: true,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(15.0),
-                                    topRight: Radius.circular(15.0),
-                                  ),
-                                ),
-                                context: context,
-                                builder: (context) {
-                                  return AddKeyActionSheet(
-                                    list: keys,
-                                    parentSetter: newKeySetState,
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        )
-                      ],
-                  isExpanded: true,
-                  underline: Container(
-                    height: 2,
-                    //Selects between the primaryColor, accentColor and the errorColor depending
-                    //on the theme in order to match the text fields around it or on the state
-                    color: keySelectError
-                        ? Theme.of(context).errorColor
-                        : (ThemeProvider.of(context)!.brightness ==
-                                Brightness.light
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).accentColor),
-                  ),
-                  style: TextStyle(
-                    fontSize: 16.0,
-                  ),
-                  itemHeight: 70,
-                ),
-              ),
+              KeysSpinner(),
               Expanded(
                 // Output text
                 flex: 4,
@@ -238,7 +134,7 @@ class _HomeState extends State<Home> {
                                   setState(() {
                                     textInputError =
                                         !validText(inpTextController.text);
-                                    keySelectError = selectedKey == '';
+                                    _dropDownKey.currentState!.validate();
                                   });
                                 },
                                 child: Text("Encrypt".toUpperCase()),
@@ -254,7 +150,7 @@ class _HomeState extends State<Home> {
                                   setState(() {
                                     textInputError =
                                         !validText(inpTextController.text);
-                                    keySelectError = selectedKey == '';
+                                    _dropDownKey.currentState!.validate();
                                   });
                                 },
                                 child: Text("Decrypt".toUpperCase()),
@@ -278,93 +174,6 @@ class _HomeState extends State<Home> {
   /// Returns true if is valid
   bool validText(String text) {
     return text.isNotEmpty;
-  }
-
-  void onOpenRemoveSheet(
-    String value,
-  ) {
-    // This closes the dropDown if it's open
-    if (Navigator.canPop(context)) Navigator.pop(context);
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(15.0),
-          topRight: Radius.circular(15.0),
-        ),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(15)),
-                  child: ListTile(
-                    onTap: () async {
-                      Navigator.pop(context);
-                      keys.remove(value);
-                      await SharedPreferences.getInstance().then((prefs) {
-                        prefs
-                            .setString(keysArrayPrefsKey, json.encode(keys))
-                            .then(
-                          (s) {
-                            newKeySetState();
-                          },
-                        );
-                      });
-                    },
-                    tileColor: Theme.of(context).accentColor,
-                    title: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 20,
-                      ),
-                      child: Text(
-                        "Delete key",
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headline5,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(15)),
-                  child: ListTile(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    tileColor: Theme.of(context).errorColor,
-                    title: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 20,
-                      ),
-                      child: Text(
-                        "Cancel",
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headline5,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  /// To be passed to to widgets that change te array
-  void newKeySetState() {
-    setState(() {
-      selectedKey = keys.isEmpty ? '' : keys.last;
-    });
   }
 
   @override
