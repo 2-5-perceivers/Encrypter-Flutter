@@ -35,7 +35,10 @@ class MainDrawer extends StatelessWidget {
           ),
           ListTile(
             title: const Text('Encrypt files'),
-            onTap: () {},
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushReplacementNamed(context, "/files");
+            },
           ),
           const Divider(),
           ListTile(
