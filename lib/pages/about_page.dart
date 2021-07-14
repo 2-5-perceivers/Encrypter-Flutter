@@ -70,7 +70,26 @@ class _AboutPageState extends State<AboutPage> {
                     letterSpacing: 1.5,
                   ),
                   textAlign: TextAlign.center,
-                )
+                ),
+                TextButton.icon(
+                  style: ButtonStyle(
+                    foregroundColor: MaterialStateProperty.all(
+                        Theme.of(context).accentColor),
+                    padding:
+                        MaterialStateProperty.all(const EdgeInsets.all(15.0)),
+                    overlayColor: MaterialStateProperty.all(
+                      Theme.of(context).hoverColor,
+                    ),
+                  ),
+                  onPressed: () {
+                    showAboutDialog(
+                      context: context,
+                      applicationLegalese: "© 2.5 Perceivers",
+                    );
+                  },
+                  icon: const Icon(Icons.info),
+                  label: const Text("More info"),
+                ),
               ],
             ),
           ),
